@@ -85,6 +85,7 @@ class model():
         padded_seq, _ = ut.padding_sequence(
             new_tokenized_seq,
             new_seq_len,
+            post= False,
             max_len=max_leng
         )
         padded_seq = np.array(padded_seq)
@@ -141,22 +142,34 @@ class model():
 
     def train(
             self, data, labels,
-            val_split=0.2,
+            val_split=0.0,
             epochs=12,
             batch_size=64,
-            callbacks=None
+            callbacks=None,
+            x_test=None,
+            y_test=None
     ):
         """
         Tranin model and return history
         """
-        history = self.model.fit(
-            data,
-            labels,
-            validation_split=val_split,
-            epochs=epochs,
-            batch_size=batch_size,
-            callbacks=callbacks
-        )
+        if val_split != 0.0:
+            history = self.model.fit(
+                data,
+                labels,
+                validation_split=val_split,
+                epochs=epochs,
+                batch_size=batch_size,
+                callbacks=callbacks,
+            )
+        else:
+            history = self.model.fit(
+                data,
+                labels,
+                epochs=epochs,
+                batch_size=batch_size,
+                callbacks=callbacks,
+                validation_data=(x_test, y_test)
+            )
         return history
 
     def predict(self, x_pred):
@@ -187,11 +200,12 @@ class model():
         """
         self.model.save_weights(weight_path)
 
-    def load_weights(self, weight_path, input_dim=1000):
+    def load_weight(self, weight_path, input_dim=1000, output_dim=128, node=32):
         """
         Define model architecture and load model weight
         """
-        self.model = self.build_model(input_dim)
+        self.model = self.build_model(
+            input_dim=input_dim, output_dim=output_dim, node=node)
         self.model.load_weights(weight_path)
 
     def plot_training_process(self, history, show=False, save=True, save_path='.'):
@@ -332,7 +346,7 @@ def init_BiLSTM_Classifier():
         def __init__(self) -> None:
             super().__init__()
 
-        def build_model(input_dim=1000, output_dim=512, node=64):
+        def build_model(self, input_dim=1000, output_dim=512, node=64):
             """
             Build bidirectional LSTM model
             """
@@ -350,7 +364,9 @@ def init_BiLSTM_Classifier():
                 loss="binary_crossentropy",
                 metrics=["accuracy"]
             )
-            return model
+
+            self.model = model
+            return self.model
     return BiLSTM_cls()
 
 

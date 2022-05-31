@@ -47,13 +47,13 @@ def predict():
         load_weight = False
     elif "GRU" in select:  # load GRU model
         clfs = model.init_GRU_Classifier()
-        model_name = '143000_GRU_1.h5'
-    elif "bi" in select:  # load Bidirectional LSTM model
+        model_name = '143000_1024_128_GRU.h5'
+    elif "Bi" in select:  # load Bidirectional LSTM model
         clfs = model.init_BiLSTM_Classifier()
-        model_name = '143000_bi-LSTM_1.h5'
+        model_name = '143000_128_32_BiLSTM.h5'
     else:  # load LSTM model
         clfs = model.init_LSTM_Classifier()
-        model_name = '142999_LSTM_1.h5'
+        model_name = '142999_1024_64_LSTM.h5'
 
     if load_weight:  # if we need to load weight only
         # load the tokenizer
@@ -64,8 +64,11 @@ def predict():
         # weight path
         weight_path = os.path.join(config.model_path, model_name)
         input_dim = int(model_name.split('_')[0])
+        output_dim = int(model_name.split('_')[1])
+        node = int(model_name.split('_')[2])
         # load mode
-        clfs.load_weights(weight_path, input_dim=input_dim)
+        clfs.load_weight(weight_path, input_dim=input_dim,
+                         output_dim=output_dim, node=node)
         # clfs.summary()
         # predict
         pred = clfs.predict(test_sequence)

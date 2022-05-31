@@ -1,5 +1,5 @@
-import numpy as np
-import pandas as pd
+
+from platform import node
 import utils as ut
 import model_v2 as model
 import os
@@ -20,19 +20,25 @@ def train():
     labels = raw_data.sentiment
 
     # preprocess training data
-    clfs = model.init_LSTM_Classifier()
+    model_name = 'BiLSTM'
+    node = 32
+    output_dim = 128
+    clfs = model.init_BiLSTM_Classifier()
     process_x, label, token = clfs.preprocessing(
         reviews, labels, init_max_len=500, init_min_len=50)
     x_train, x_test, y_train, y_test = ut.train_test_split(
         process_x, label, test_size=0.4, random_state=42)
 
     input_dim = len(ut.create_vocab(token))+1
-    weight_path = os.path.join(config.model_path, f'{input_dim}_weight.h5')
+    weight_path = os.path.join(
+        config.model_path, f'{input_dim}_{output_dim}_{node}_{model_name}.h5')
     # define model
-    clfs.build_model(input_dim)
+    clfs.build_model(input_dim, output_dim, node)
     # train model
     history = clfs.train(
-        x_train, y_train, epochs=config.epochs, batch_size=config.batch_size)
+        x_train, y_train, epochs=config.epochs,
+        batch_size=config.batch_size,
+        x_test=x_test, y_test=y_test)
     # save weight
     clfs.save_weights(weight_path)
     print(f'Save weight to: {weight_path}')
